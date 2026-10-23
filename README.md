@@ -1,6 +1,6 @@
-# __NAME__
+# terraform-google-cloud-sql
 
-__DESCRIPTION__
+Cloud SQL instance with private IP only, enforced TLS, backups with PITR, HA in prod and generated passwords stored in Secret Manager
 
 ## Opinions
 
@@ -10,7 +10,7 @@ __DESCRIPTION__
 
 ```hcl
 module "this" {
-  source = "git::https://github.com/Olensys/__NAME__.git?ref=v1.0.0"
+  source = "git::https://github.com/Olensys/terraform-google-cloud-sql.git?ref=v1.0.0"
 
   name = "example"
   context = {
