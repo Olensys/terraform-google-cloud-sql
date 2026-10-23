@@ -18,27 +18,28 @@ Cloud SQL instance with private IP only, enforced TLS, backups with PITR, HA in 
 - No default database or default user is created. Databases come from `databases`, users from `users`.
 - Passwords: a user without `password_secret_id` gets a 32-character generated password stored in a new secret named `<name>-<user>-password` (ids in `user_password_secret_ids`). A user with `password_secret_id` has the latest version of that existing secret read and used; the caller must grant the identity running Terraform access to it. Passwords are held in Terraform state, so protect the state.
 - Instance names are reserved by Cloud SQL for about a week after deletion; reuse of a name right after destroy fails.
+- `context.extra_tags` keys and values are normalised to valid GCP label syntax (lowercase, `[^a-z0-9_-]` → `-`, 63 chars); `labels` are applied verbatim and win.
 
 ## Usage
 
 ```hcl
-module "this" {
-  source = "git::https://github.com/Olensys/terraform-google-cloud-sql.git?ref=v1.0.0"
+module "naming" {
+  source  = "git::https://github.com/Olensys/terraform-null-naming.git?ref=v1.0.1"
+  context = var.context
+}
 
-  name       = "example"
+module "this" {
+  source = "git::https://github.com/Olensys/terraform-google-cloud-sql.git?ref=v1.1.0"
+
+  name       = module.naming.name
   project_id = "my-project"
   region     = "europe-west1"
-  context = {
-    organization = "olensys"
-    environment  = "dev"
-    application  = "example"
-    owner        = "platform"
-    cost_center  = "eng"
-  }
+  context = var.context
 
   network_self_link = "projects/my-project/global/networks/main"
   databases         = ["app"]
   users             = { app = {} }
+  labels  = module.naming.labels
 }
 ```
 
