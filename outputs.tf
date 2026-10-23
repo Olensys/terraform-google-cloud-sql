@@ -62,3 +62,8 @@ output "applied_ip_configuration" {
   description = "ip_configuration of the created instance as reported by the provider (ipv4_enabled, ssl_mode, private_network). Null when create is false."
   value       = local.applied_ip_configuration
 }
+
+output "edition" {
+  description = "Cloud SQL edition passed to the upstream module. Null when create is false."
+  value       = var.create ? local.edition : null
+}

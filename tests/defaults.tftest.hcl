@@ -137,6 +137,31 @@ run "test_ha_override_wins" {
   }
 }
 
+run "test_edition_enterprise" {
+  command = plan
+
+  # SMOKE: asserts the edition value both module blocks receive (local.edition); the child module input is not addressable.
+  assert {
+    condition     = output.edition == "ENTERPRISE"
+    error_message = "edition must be ENTERPRISE."
+  }
+}
+
+run "test_edition_enterprise_mysql" {
+  command = plan
+
+  variables {
+    engine           = "mysql"
+    database_version = "MYSQL_8_0"
+  }
+
+  # SMOKE: asserts the edition value both module blocks receive (local.edition); the child module input is not addressable.
+  assert {
+    condition     = output.edition == "ENTERPRISE"
+    error_message = "edition must be ENTERPRISE on mysql."
+  }
+}
+
 run "test_engine_validation" {
   command = plan
 
@@ -211,7 +236,7 @@ run "test_create_false_plans_nothing" {
   }
 
   assert {
-    condition     = output.id == null && output.name == null && output.self_link == null && output.connection_name == null && output.private_ip == null && output.user_password_secret_ids == null && output.labels == null && output.ip_configuration == null && output.availability_type == null && output.applied_ip_configuration == null
+    condition     = output.id == null && output.name == null && output.self_link == null && output.connection_name == null && output.private_ip == null && output.user_password_secret_ids == null && output.labels == null && output.ip_configuration == null && output.availability_type == null && output.applied_ip_configuration == null && output.edition == null
     error_message = "All outputs must be null when create is false."
   }
 

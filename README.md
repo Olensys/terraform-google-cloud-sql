@@ -107,6 +107,7 @@ The upstream sql-db 28.3.0 modules require `google` and `google-beta` `>= 7.22, 
 | <a name="output_applied_ip_configuration"></a> [applied\_ip\_configuration](#output\_applied\_ip\_configuration) | ip\_configuration of the created instance as reported by the provider (ipv4\_enabled, ssl\_mode, private\_network). Null when create is false. |
 | <a name="output_availability_type"></a> [availability\_type](#output\_availability\_type) | Availability type passed to the upstream module: REGIONAL or ZONAL. Null when create is false. |
 | <a name="output_connection_name"></a> [connection\_name](#output\_connection\_name) | Connection name (project:region:instance) for the Cloud SQL Auth Proxy and connectors. Null when create is false. |
+| <a name="output_edition"></a> [edition](#output\_edition) | Cloud SQL edition passed to the upstream module. Null when create is false. |
 | <a name="output_id"></a> [id](#output\_id) | Identifier of the instance (its name). Null when create is false. |
 | <a name="output_ip_configuration"></a> [ip\_configuration](#output\_ip\_configuration) | ip\_configuration passed to the upstream module: private IP only, TLS enforced. Null when create is false. |
 | <a name="output_labels"></a> [labels](#output\_labels) | Labels applied to every labelable resource, with context.extra\_tags merged in. Null when create is false. |

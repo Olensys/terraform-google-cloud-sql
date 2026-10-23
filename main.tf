@@ -1,6 +1,9 @@
 locals {
   labels = merge(var.context.extra_tags, var.labels)
 
+  # Cloud SQL defaults newer versions to ENTERPRISE_PLUS, which rejects db-custom-* tiers.
+  edition = "ENTERPRISE"
+
   is_postgres = var.engine == "postgres"
   is_mysql    = var.engine == "mysql"
 
@@ -113,7 +116,7 @@ module "postgres" {
   name              = var.name
   region            = var.region
   database_version  = var.database_version
-  edition           = "ENTERPRISE"
+  edition           = local.edition
   tier              = var.tier
   availability_type = local.availability_type
 
@@ -163,6 +166,7 @@ module "mysql" {
   name              = var.name
   region            = var.region
   database_version  = var.database_version
+  edition           = local.edition
   tier              = var.tier
   availability_type = local.availability_type
 
