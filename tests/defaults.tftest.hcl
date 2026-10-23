@@ -1,3 +1,11 @@
+mock_provider "google-beta" {
+  mock_data "google_compute_zones" {
+    defaults = {
+      names = ["europe-west1-b", "europe-west1-c", "europe-west1-d"]
+    }
+  }
+}
+
 mock_provider "google" {
   mock_data "google_compute_zones" {
     defaults = {
@@ -26,7 +34,7 @@ variables {
 run "test_private_ip_only" {
   command = plan
 
-  # SMOKE: asserts the ip_configuration this wrapper hands to the upstream module; the applied instance is proven by complete.tftest.hcl and trivy.
+  # SMOKE: asserts the ip_configuration this wrapper hands to the upstream module; it does not observe the created instance (complete.tftest.hcl asserts the applied ip_configuration in the nightly run).
   assert {
     condition     = output.ip_configuration.ipv4_enabled == false && output.ip_configuration.private_network == var.network_self_link
     error_message = "ipv4 must be disabled and the private network set."
@@ -36,7 +44,7 @@ run "test_private_ip_only" {
 run "test_ssl_required" {
   command = plan
 
-  # SMOKE: asserts the ssl_mode passed to the upstream module; the applied instance is proven by complete.tftest.hcl.
+  # SMOKE: asserts the ssl_mode passed to the upstream module; it does not observe the created instance (complete.tftest.hcl asserts the applied ssl_mode in the nightly run).
   assert {
     condition     = output.ip_configuration.ssl_mode == "ENCRYPTED_ONLY"
     error_message = "ssl_mode must be ENCRYPTED_ONLY."
@@ -81,6 +89,38 @@ run "test_ha_default_off_in_dev" {
     condition     = output.availability_type == "ZONAL"
     error_message = "dev must default to ZONAL."
   }
+}
+
+run "test_ha_override_false_in_prod" {
+  command = plan
+
+  variables {
+    context = {
+      organization = "olensys"
+      environment  = "prod"
+      application  = "example"
+      owner        = "platform"
+      cost_center  = "eng"
+    }
+    high_availability = false
+  }
+
+  # SMOKE: asserts the availability_type passed to the upstream module, not the applied instance.
+  assert {
+    condition     = output.availability_type == "ZONAL"
+    error_message = "high_availability = false must force ZONAL in prod."
+  }
+}
+
+run "test_ha_requires_pitr_on_postgres" {
+  command = plan
+
+  variables {
+    high_availability = true
+    backup            = { pitr = false }
+  }
+
+  expect_failures = [output.connection_name]
 }
 
 run "test_ha_override_wins" {
@@ -171,7 +211,7 @@ run "test_create_false_plans_nothing" {
   }
 
   assert {
-    condition     = output.id == null && output.name == null && output.self_link == null && output.connection_name == null && output.private_ip == null && output.user_password_secret_ids == null && output.labels == null && output.ip_configuration == null && output.availability_type == null
+    condition     = output.id == null && output.name == null && output.self_link == null && output.connection_name == null && output.private_ip == null && output.user_password_secret_ids == null && output.labels == null && output.ip_configuration == null && output.availability_type == null && output.applied_ip_configuration == null
     error_message = "All outputs must be null when create is false."
   }
 

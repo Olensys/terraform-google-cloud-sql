@@ -12,6 +12,8 @@ Cloud SQL instance with private IP only, enforced TLS, backups with PITR, HA in 
 - High availability (`REGIONAL`) defaults to on when `context.environment` is `prod`, otherwise `ZONAL`; `high_availability` overrides.
 - `deletion_protection` and the instance-level `deletion_protection_enabled` are on in prod only.
 - Postgres sets `log_checkpoints`, `log_connections`, `log_disconnections`, `log_lock_waits` to `on` and `log_temp_files` to `0`; entries in `flags` override them. The upstream module also pulls in the `google-beta` provider.
+- Edition is `ENTERPRISE`: Cloud SQL defaults PostgreSQL 16+ and MySQL 8.4 to `ENTERPRISE_PLUS`, which rejects `db-custom-*` tiers. `ENTERPRISE_PLUS` needs `db-perf-optimized-*` tiers and is planned as an input in v1.1.
+- Regional (HA) postgres requires `backup.enabled` and `backup.pitr`, checked as a precondition on `connection_name`.
 - Maintenance on the `stable` track, default Sunday 03:00 UTC.
 - No default database or default user is created. Databases come from `databases`, users from `users`.
 - Passwords: a user without `password_secret_id` gets a 32-character generated password stored in a new secret named `<name>-<user>-password` (ids in `user_password_secret_ids`). A user with `password_secret_id` has the latest version of that existing secret read and used; the caller must grant the identity running Terraform access to it. Passwords are held in Terraform state, so protect the state.
@@ -40,20 +42,25 @@ module "this" {
 }
 ```
 
+## Provider requirements
+
+The upstream sql-db 28.3.0 modules require `google` and `google-beta` `>= 7.22, < 9`, and create the instance with `google-beta`. This module therefore declares both providers as `>= 7.22, < 8.0`, narrower than the library-wide `google` bound of `>= 6.0, < 8.0`. Configure both providers in the root module (same project and credentials).
+
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 
 | Name | Version |
 | ---- | ------- |
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.5.0 |
-| <a name="requirement_google"></a> [google](#requirement\_google) | >= 6.0, < 8.0 |
+| <a name="requirement_google"></a> [google](#requirement\_google) | >= 7.22, < 8.0 |
+| <a name="requirement_google-beta"></a> [google-beta](#requirement\_google-beta) | >= 7.22, < 8.0 |
 | <a name="requirement_random"></a> [random](#requirement\_random) | >= 3.5, < 4.0 |
 
 ## Providers
 
 | Name | Version |
 | ---- | ------- |
-| <a name="provider_google"></a> [google](#provider\_google) | >= 6.0, < 8.0 |
+| <a name="provider_google"></a> [google](#provider\_google) | >= 7.22, < 8.0 |
 | <a name="provider_random"></a> [random](#provider\_random) | >= 3.5, < 4.0 |
 
 ## Modules
@@ -97,6 +104,7 @@ module "this" {
 
 | Name | Description |
 | ---- | ----------- |
+| <a name="output_applied_ip_configuration"></a> [applied\_ip\_configuration](#output\_applied\_ip\_configuration) | ip\_configuration of the created instance as reported by the provider (ipv4\_enabled, ssl\_mode, private\_network). Null when create is false. |
 | <a name="output_availability_type"></a> [availability\_type](#output\_availability\_type) | Availability type passed to the upstream module: REGIONAL or ZONAL. Null when create is false. |
 | <a name="output_connection_name"></a> [connection\_name](#output\_connection\_name) | Connection name (project:region:instance) for the Cloud SQL Auth Proxy and connectors. Null when create is false. |
 | <a name="output_id"></a> [id](#output\_id) | Identifier of the instance (its name). Null when create is false. |

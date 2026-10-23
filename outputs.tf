@@ -23,8 +23,13 @@ output "connection_name" {
   }
 
   precondition {
-    condition     = !var.create || !local.is_mysql || !var.backup.enabled || var.backup.retained > local.txlog_days
+    condition     = !var.create || !local.is_mysql || var.backup.retained > local.txlog_days
     error_message = "On mysql, backup.retained must be greater than the 7-day transaction log retention."
+  }
+
+  precondition {
+    condition     = !var.create || !local.is_postgres || !local.high_availability || (var.backup.enabled && var.backup.pitr)
+    error_message = "A regional (high availability) postgres instance requires backup.enabled and backup.pitr."
   }
 }
 
@@ -51,4 +56,9 @@ output "ip_configuration" {
 output "availability_type" {
   description = "Availability type passed to the upstream module: REGIONAL or ZONAL. Null when create is false."
   value       = var.create ? local.availability_type : null
+}
+
+output "applied_ip_configuration" {
+  description = "ip_configuration of the created instance as reported by the provider (ipv4_enabled, ssl_mode, private_network). Null when create is false."
+  value       = local.applied_ip_configuration
 }

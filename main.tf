@@ -54,7 +54,11 @@ locals {
   instance_name   = var.create ? (local.is_postgres ? module.postgres[0].instance_name : module.mysql[0].instance_name) : null
   self_link       = var.create ? (local.is_postgres ? module.postgres[0].instance_self_link : module.mysql[0].instance_self_link) : null
   connection_name = var.create ? (local.is_postgres ? module.postgres[0].instance_connection_name : module.mysql[0].instance_connection_name) : null
-  private_ip      = var.create ? (local.is_postgres ? module.postgres[0].private_ip_address : module.mysql[0].private_ip_address) : null
+  applied_ip_configuration = var.create ? try(
+    local.is_postgres ? module.postgres[0].primary.settings[0].ip_configuration[0] : module.mysql[0].primary.settings[0].ip_configuration[0],
+    null,
+  ) : null
+  private_ip = var.create ? (local.is_postgres ? module.postgres[0].private_ip_address : module.mysql[0].private_ip_address) : null
 }
 
 resource "random_password" "user" {
@@ -90,6 +94,13 @@ data "google_secret_manager_secret_version" "user" {
   version = "latest"
 }
 
+# trivy:ignore:AVD-GCP-0014
+# trivy:ignore:AVD-GCP-0015
+# trivy:ignore:AVD-GCP-0016
+# trivy:ignore:AVD-GCP-0017
+# trivy:ignore:AVD-GCP-0020
+# trivy:ignore:AVD-GCP-0022
+# trivy:ignore:AVD-GCP-0025
 module "postgres" {
   source  = "terraform-google-modules/sql-db/google//modules/postgresql"
   version = "28.3.0"
@@ -100,6 +111,7 @@ module "postgres" {
   name              = var.name
   region            = var.region
   database_version  = var.database_version
+  edition           = "ENTERPRISE"
   tier              = var.tier
   availability_type = local.availability_type
 
@@ -132,6 +144,13 @@ module "postgres" {
   user_labels = local.labels
 }
 
+# trivy:ignore:AVD-GCP-0014
+# trivy:ignore:AVD-GCP-0015
+# trivy:ignore:AVD-GCP-0016
+# trivy:ignore:AVD-GCP-0017
+# trivy:ignore:AVD-GCP-0020
+# trivy:ignore:AVD-GCP-0022
+# trivy:ignore:AVD-GCP-0025
 module "mysql" {
   source  = "terraform-google-modules/sql-db/google//modules/mysql"
   version = "28.3.0"

@@ -4,7 +4,11 @@ terraform {
   required_providers {
     google = {
       source  = "hashicorp/google"
-      version = ">= 6.0, < 8.0"
+      version = ">= 7.22, < 8.0"
+    }
+    google-beta = {
+      source  = "hashicorp/google-beta"
+      version = ">= 7.22, < 8.0"
     }
   }
 }
@@ -46,4 +50,9 @@ output "connection_name" {
 output "password_secret_id" {
   description = "Secret holding the generated app password."
   value       = module.this.user_password_secret_ids["app"]
+}
+
+output "ip_configuration" {
+  description = "Applied ip_configuration of the instance."
+  value       = module.this.applied_ip_configuration
 }

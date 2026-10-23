@@ -1,13 +1,2 @@
 # One ID per line, each with a justification comment.
 
-# The findings below are raised on the upstream postgres module's google_sql_database_instance,
-# evaluated statically with the caller's inputs unresolved. The module sets all of them:
-# ipv4_enabled = false and ssl_mode = ENCRYPTED_ONLY (ip_configuration), and the log_* /
-# log_temp_files flags (local.postgres_default_flags). See README Opinions.
-AVD-GCP-0014
-AVD-GCP-0015
-AVD-GCP-0016
-AVD-GCP-0017
-AVD-GCP-0020
-AVD-GCP-0022
-AVD-GCP-0025
