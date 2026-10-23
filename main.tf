@@ -54,10 +54,12 @@ locals {
   instance_name   = var.create ? (local.is_postgres ? module.postgres[0].instance_name : module.mysql[0].instance_name) : null
   self_link       = var.create ? (local.is_postgres ? module.postgres[0].instance_self_link : module.mysql[0].instance_self_link) : null
   connection_name = var.create ? (local.is_postgres ? module.postgres[0].instance_connection_name : module.mysql[0].instance_connection_name) : null
-  applied_ip_configuration = var.create ? try(
-    local.is_postgres ? module.postgres[0].primary.settings[0].ip_configuration[0] : module.mysql[0].primary.settings[0].ip_configuration[0],
-    null,
-  ) : null
+  # The upstream primary object is marked sensitive; these fields are not secrets.
+  applied_ip_configuration = var.create ? {
+    ipv4_enabled    = try(nonsensitive(local.is_postgres ? module.postgres[0].primary.settings[0].ip_configuration[0].ipv4_enabled : module.mysql[0].primary.settings[0].ip_configuration[0].ipv4_enabled), null)
+    ssl_mode        = try(nonsensitive(local.is_postgres ? module.postgres[0].primary.settings[0].ip_configuration[0].ssl_mode : module.mysql[0].primary.settings[0].ip_configuration[0].ssl_mode), null)
+    private_network = try(nonsensitive(local.is_postgres ? module.postgres[0].primary.settings[0].ip_configuration[0].private_network : module.mysql[0].primary.settings[0].ip_configuration[0].private_network), null)
+  } : null
   private_ip = var.create ? (local.is_postgres ? module.postgres[0].private_ip_address : module.mysql[0].private_ip_address) : null
 }
 
