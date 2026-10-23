@@ -4,7 +4,7 @@ tier: capability          # primitive | capability | blueprint
 maturity: experimental    # experimental | stable | deprecated
 description: Cloud SQL instance with private IP only, enforced TLS, backups with PITR, HA in prod and generated passwords stored in Secret Manager
 owners: [platform]
-upstream: null            # e.g. "terraform-aws-modules/s3-bucket/aws 5.17.0"
+upstream: "terraform-google-modules/sql-db/google//modules/postgresql 28.3.0 (+ //modules/mysql)"
 pairs_with: null          # e.g. "terraform-google-gcs-bucket"
 registry_name: terraform-google-cloud-sql
 deprecated: null          # { removal: YYYY-MM-DD, replacement: <repo> }
