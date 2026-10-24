@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.1](https://github.com/Olensys/terraform-google-cloud-sql/compare/v1.1.0...v1.1.1) (2026-10-24)
+
+
+### Bug Fixes
+
+* **examples:** use the smallest shapes for the integration apply ([55453cd](https://github.com/Olensys/terraform-google-cloud-sql/commit/55453cdd2a44bfc46fb4edb33d481cd27aaf69e7))
+* run integration on change and weekly instead of nightly ([6af9d79](https://github.com/Olensys/terraform-google-cloud-sql/commit/6af9d79a4759914dd8100b6f683ec45039f02798))
+
 ## 1.1.0
 
 ### Fixes
