@@ -26,7 +26,7 @@ variable "network_self_link" {
 module "this" {
   source = "../../"
 
-  name       = "example"
+  name       = "olensys-test-sql"
   project_id = var.project_id
   region     = "europe-west1"
   # smallest tier; the example exists to prove the apply, not to size a database
@@ -34,7 +34,7 @@ module "this" {
   context = {
     organization = "olensys"
     environment  = "test"
-    application  = "example"
+    application  = "sql"
     owner        = "platform"
     cost_center  = "eng"
   }
