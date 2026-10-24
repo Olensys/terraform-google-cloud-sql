@@ -1,7 +1,7 @@
 name: terraform-google-cloud-sql
 cloud: google          # aws | google | common
 tier: capability          # primitive | capability | blueprint
-maturity: experimental    # experimental | stable | deprecated
+maturity: stable    # experimental | stable | deprecated
 description: Cloud SQL instance with private IP only, enforced TLS, backups with PITR, HA in prod and generated passwords stored in Secret Manager
 owners: [platform]
 upstream: "terraform-google-modules/sql-db/google//modules/postgresql 28.3.0 (+ //modules/mysql)"
