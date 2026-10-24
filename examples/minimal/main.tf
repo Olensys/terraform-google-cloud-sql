@@ -29,6 +29,8 @@ module "this" {
   name       = "example"
   project_id = var.project_id
   region     = "europe-west1"
+  # smallest tier; the example exists to prove the apply, not to size a database
+  tier = "db-f1-micro"
   context = {
     organization = "olensys"
     environment  = "test"
