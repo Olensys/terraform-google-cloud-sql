@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/Olensys/terraform-google-cloud-sql/compare/v1.1.2...v1.2.0) (2026-11-14)
+
+
+### Features
+
+* adoption inputs edition and deletion_protection, unmanaged user passwords ([#5](https://github.com/Olensys/terraform-google-cloud-sql/issues/5)) ([68889b6](https://github.com/Olensys/terraform-google-cloud-sql/commit/68889b6d92a43b62bf943294ab865ec8c5bfc49e))
+
 ## [1.1.2](https://github.com/Olensys/terraform-google-cloud-sql/compare/v1.1.1...v1.1.2) (2026-10-24)
 
 
