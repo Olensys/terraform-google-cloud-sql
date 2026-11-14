@@ -62,6 +62,16 @@ variable "tier" {
   default     = "db-custom-2-7680"
 }
 
+variable "edition" {
+  description = "Cloud SQL edition: ENTERPRISE (the default) or ENTERPRISE_PLUS. ENTERPRISE_PLUS rejects db-custom-* tiers and needs db-perf-optimized-* tiers, checked as a precondition on connection_name. Match the existing instance when adopting one by import."
+  type        = string
+  default     = "ENTERPRISE"
+  validation {
+    condition     = contains(["ENTERPRISE", "ENTERPRISE_PLUS"], var.edition)
+    error_message = "edition must be one of ENTERPRISE, ENTERPRISE_PLUS."
+  }
+}
+
 variable "network_self_link" {
   description = "Self link of the VPC network the instance gets its private IP in. The network needs private service access configured."
   type        = string
@@ -74,11 +84,16 @@ variable "databases" {
 }
 
 variable "users" {
-  description = "Database users keyed by user name. With password_secret_id null a password is generated and stored in a new Secret Manager secret named <name>-<user>-password. With password_secret_id set, the latest version of that existing secret (a secret id or resource name) is read and used as the password."
+  description = "Database users keyed by user name. With manage_password true (the default) and password_secret_id null, a password is generated and stored in a new Secret Manager secret named <name>-<user>-password. With password_secret_id set, the latest version of that existing secret (a secret id or resource name) is read and used as the password. With manage_password false the user is created with no password and nothing is generated, read or stored: the password is set out of band and never enters Terraform state (meant for adopting existing users by import; Cloud SQL may refuse to create a new Postgres built-in user without a password)."
   type = map(object({
     password_secret_id = optional(string)
+    manage_password    = optional(bool, true)
   }))
   default = {}
+  validation {
+    condition     = alltrue([for u in var.users : u.manage_password || u.password_secret_id == null])
+    error_message = "A user with manage_password = false cannot also set password_secret_id."
+  }
 }
 
 variable "high_availability" {
@@ -112,6 +127,13 @@ variable "maintenance_window" {
     condition     = var.maintenance_window.day >= 1 && var.maintenance_window.day <= 7 && var.maintenance_window.hour >= 0 && var.maintenance_window.hour <= 23
     error_message = "maintenance_window.day must be 1 to 7 and maintenance_window.hour 0 to 23."
   }
+}
+
+variable "deletion_protection" {
+  description = "Whether Terraform may destroy the instance (deletion_protection) and whether the instance refuses deletion (deletion_protection_enabled). Null (the default) turns both on when context.environment is prod and off otherwise; true or false overrides that rule."
+  type        = bool
+  default     = null
+  nullable    = true
 }
 
 variable "flags" {

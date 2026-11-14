@@ -3,15 +3,17 @@ locals {
   substr(replace(lower(k), "/[^a-z0-9_-]/", "-"), 0, 63) => substr(replace(lower(v), "/[^a-z0-9_-]/", "-"), 0, 63) }
   labels = merge(local.extra_labels, var.labels)
 
-  # Cloud SQL defaults newer versions to ENTERPRISE_PLUS, which rejects db-custom-* tiers.
-  edition = "ENTERPRISE"
+  # Cloud SQL defaults newer versions to ENTERPRISE_PLUS, which rejects db-custom-* tiers; the module defaults to
+  # ENTERPRISE and a precondition on output connection_name catches ENTERPRISE_PLUS with a db-custom-* tier.
+  edition = var.edition
 
   is_postgres = var.engine == "postgres"
   is_mysql    = var.engine == "mysql"
 
-  high_availability   = coalesce(var.high_availability, var.context.environment == "prod")
-  availability_type   = local.high_availability ? "REGIONAL" : "ZONAL"
-  deletion_protection = var.context.environment == "prod"
+  high_availability = coalesce(var.high_availability, var.context.environment == "prod")
+  availability_type = local.high_availability ? "REGIONAL" : "ZONAL"
+  # Null follows the environment rule (on in prod); true or false overrides it.
+  deletion_protection = coalesce(var.deletion_protection, var.context.environment == "prod")
 
   ip_configuration = {
     ipv4_enabled       = false
@@ -45,8 +47,12 @@ locals {
 
   additional_databases = [for d in var.databases : { name = d, charset = null, collation = null }]
 
-  generated_users = { for k, u in var.users : k => u if u.password_secret_id == null }
-  supplied_users  = { for k, u in var.users : k => u if u.password_secret_id != null }
+  # Unmanaged users (manage_password = false) get no generated, read or stored password; their password is set out of
+  # band and never enters state. Managed users split into generated (new secret) and supplied (existing secret).
+  managed_users   = { for k, u in var.users : k => u if u.manage_password }
+  unmanaged_users = { for k, u in var.users : k => u if !u.manage_password }
+  generated_users = { for k, u in local.managed_users : k => u if u.password_secret_id == null }
+  supplied_users  = { for k, u in local.managed_users : k => u if u.password_secret_id != null }
 
   passwords = merge(
     { for k, p in random_password.user : k => p.result },
@@ -99,6 +105,22 @@ data "google_secret_manager_secret_version" "user" {
 
   secret  = each.value.password_secret_id
   version = "latest"
+}
+
+# The upstream modules insist on a password (generated or given) for every built-in user, so unmanaged users are
+# created here with password unset. The password is set out of band and ignored afterwards, so it never enters state.
+resource "google_sql_user" "unmanaged" {
+  for_each = var.create ? local.unmanaged_users : {}
+
+  project  = var.project_id
+  instance = local.instance_name
+  name     = each.key
+  type     = "BUILT_IN"
+  host     = local.is_mysql ? "%" : null
+
+  lifecycle {
+    ignore_changes = [password]
+  }
 }
 
 # trivy:ignore:AVD-GCP-0014

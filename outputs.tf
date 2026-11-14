@@ -31,6 +31,11 @@ output "connection_name" {
     condition     = !var.create || !local.is_postgres || !local.high_availability || (var.backup.enabled && var.backup.pitr)
     error_message = "A regional (high availability) postgres instance requires backup.enabled and backup.pitr."
   }
+
+  precondition {
+    condition     = !var.create || var.edition != "ENTERPRISE_PLUS" || !startswith(var.tier, "db-custom-")
+    error_message = "ENTERPRISE_PLUS rejects db-custom-* tiers; use a db-perf-optimized-* tier or edition ENTERPRISE."
+  }
 }
 
 output "private_ip" {
@@ -39,7 +44,7 @@ output "private_ip" {
 }
 
 output "user_password_secret_ids" {
-  description = "Map of user name to the id of the Secret Manager secret holding its generated password. Users with password_secret_id are not listed. Null when create is false."
+  description = "Map of user name to the id of the Secret Manager secret holding its generated password. Users with password_secret_id or manage_password = false are not listed. Null when create is false."
   value       = var.create ? { for k, s in google_secret_manager_secret.user : k => s.id } : null
 }
 
@@ -66,4 +71,14 @@ output "applied_ip_configuration" {
 output "edition" {
   description = "Cloud SQL edition passed to the upstream module. Null when create is false."
   value       = var.create ? local.edition : null
+}
+
+output "deletion_protection" {
+  description = "Whether the instance is protected from deletion (on in prod unless deletion_protection overrides it). Null when create is false."
+  value       = var.create ? local.deletion_protection : null
+}
+
+output "unmanaged_user_names" {
+  description = "Names of users created with manage_password = false (no password generated, read or stored). Null when create is false."
+  value       = var.create ? sort(keys(local.unmanaged_users)) : null
 }
